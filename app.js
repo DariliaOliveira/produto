@@ -1,7 +1,12 @@
+//app.js
+const { Sequelize, DataTypes } = require('sequelize');
+const config = require('./config/config');
+const produtoModel = require('./models/produtoModel');
+const sequelize = new Sequelize(config.developement);
+const Produto = ProdutoModel(sequelize, DataTypes);
+async function run() {
+
 // Sync do sequelize com banco de dados
-(async () => {
-    const Produto = require('./models/produtoModel');
-    
     try {
         //1-CREATE
         const resultadoCreate = await Produto.create({
@@ -9,12 +14,12 @@
             preco: 55.99,
             descricao: 'cor: vermelho, saída bluetooth'
         })
-        console.log('Novo produto cadastrado', resultadoCreate);
+        console.log('Novo produto cadastrado', resultadoCreate.toJSON());
 
 
         //2-READ - LISTAR TODOS OS PRODUTOS
         const produtos = await Produto.findAll();
-        console.log('Produtos Cadastrados:', produtos);
+        console.log('Produtos Cadastrados:', produtos.map(p => p.toJSON()));
 
 
         //3-READ - LISTAR UM PRODUTO ESPECÍFICO (PREÇO ESPECÍFICO, DESCRIÇÃO ESPECÍFICA ETC)
@@ -38,18 +43,18 @@
         console.log(resultadoSave > 0 ? 'Atualizado com sucesso!' : 'Produto não encontrado!', resultadoSave);
 
         // 6 - DELETE
-        const resultadoDestroy = await Produto.destroy({ where: {
-            nome //deletar produto pesquisando por nome
-        }
-    });
-    console.log(resultadoDestroy > 0 ? 'Removido com sucesso!' : 'Produto não encontrado', resultadoDestroy);
+        const resultadoDestroy = await Produto.destroy({ where: { id: resultadoCreate.id } });
+        console.log(
+            'Produto removido:', resultadoDestroy > 0 ? 'Removido com sucesso!' : 'Produto não encontrado!'
+        );
+             //deletar produto pesquisando por nome
+        //TRATAMENTO DE EXCEÇÕES
+        } catch (error) {
+        console.log('ERROR\n', error.message);
 
-    //TRATAMENTO DE EXCEÇÕES
-    } catch (error) {
-        console.log('ERROR\n', error);
-
-    //AO FINALIZAR O SCRIPT, FINALIZA A CONEXÃO COM O BANCO DE DADOS
-    } finally {
-    
-    } 
-    })();
+         //AO FINALIZAR O SCRIPT, FINALIZA A CONEXÃO COM O BANCO DE DADOS
+        } finally {
+        await Produto.sequelize.close();
+        } 
+    }
+    run();
